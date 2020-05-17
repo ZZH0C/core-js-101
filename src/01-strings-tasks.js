@@ -117,7 +117,7 @@ function removeLeadingAndTrailingWhitespaces(value) {
  */
 function repeatString(value, count) {
   const str = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     str.push(value);
   }
   return str.join('');
@@ -135,8 +135,8 @@ function repeatString(value, count) {
  *   'I like legends', 'end' => 'I like legs',
  *   'ABABAB','BA' => 'ABAB'
  */
-function removeFirstOccurrences(/* str, value */) {
-  throw new Error('Not implemented');
+function removeFirstOccurrences(str, value) {
+  return str.replace(value, '');
 }
 
 /**
@@ -151,10 +151,7 @@ function removeFirstOccurrences(/* str, value */) {
  *   '<a>' => 'a'
  */
 function unbracketTag(str) {
-  const val = str.split('');
-  val.shift();
-  val.pop();
-  return val.join('');
+  return str.slice(1, str.length - 1);
 }
 
 
@@ -214,8 +211,12 @@ function extractEmails(str) {
  *             '└──────────┘\n'
  *
  */
-function getRectangleString(/* width, height */) {
-  throw new Error('Not implemented');
+function getRectangleString(width, height) {
+  let str = `\u250C${'─'.repeat(width - 2)}\u2510\n`;
+  for (let i = 0; i < height - 2; i += 1) {
+    str = `${str}│${' '.repeat(width - 2)}│\n`;
+  }
+  return `${str}\u2514${'─'.repeat(width - 2)}\u2518\n`;
 }
 
 
@@ -235,8 +236,26 @@ function getRectangleString(/* width, height */) {
  *    => 'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm'
  *
  */
-function encodeToRot13(/* str */) {
-  throw new Error('Not implemented');
+function encodeToRot13(str) {
+  const aCharCode = 'a'.charCodeAt(0);
+  const zCharCode = 'z'.charCodeAt(0);
+  const ACharCode = 'A'.charCodeAt(0);
+  const ZCharCode = 'Z'.charCodeAt(0);
+
+  return str
+    .split('')
+    .map((x, idx) => {
+      let charCode = str.charCodeAt(idx);
+      if (charCode >= aCharCode && charCode <= zCharCode) {
+        charCode += 13;
+        if (charCode > zCharCode) charCode -= 26;
+      } else if (charCode >= ACharCode && charCode <= ZCharCode) {
+        charCode += 13;
+        if (charCode > ZCharCode) charCode -= 26;
+      }
+      return String.fromCharCode(charCode);
+    })
+    .join('');
 }
 
 /**
@@ -253,7 +272,11 @@ function encodeToRot13(/* str */) {
  *   isString(new String('test')) => true
  */
 function isString(value) {
-  return typeof value === 'string';
+  return (
+    value !== null
+    && value !== undefined
+    && (value.toString() === value || (value instanceof String))
+  );
 }
 
 
@@ -282,15 +305,18 @@ function isString(value) {
  *   'K♠' => 51
  */
 function getCardId(value) {
-  const deck = [
-    'A♣', '2♣', '3♣', '4♣', '5♣', '6♣', '7♣', '8♣', '9♣', '10♣', 'J♣', 'Q♣', 'K♣',
-    'A♦', '2♦', '3♦', '4♦', '5♦', '6♦', '7♦', '8♦', '9♦', '10♦', 'J♦', 'Q♦', 'K♦',
-    'A♥', '2♥', '3♥', '4♥', '5♥', '6♥', '7♥', '8♥', '9♥', '10♥', 'J♥', 'Q♥', 'K♥',
-    'A♠', '2♠', '3♠', '4♠', '5♠', '6♠', '7♠', '8♠', '9♠', '10♠', 'J♠', 'Q♠', 'K♠',
-  ];
-  for (let i = 0; i < deck.length; i++) {
-    if (value === deck[i]) return i;
-  }
+  const map = {
+    '♣': 0,
+    '♦': 13,
+    '♥': 26,
+    '♠': 39,
+    A: 0,
+    J: 10,
+    Q: 11,
+    K: 12,
+  };
+  const tmpValue = value.slice(0, value.length - 1);
+  return (tmpValue in map ? map[tmpValue] : (+tmpValue - 1)) + map[value.slice(value.length - 1)];
 }
 
 
